@@ -1,2 +1,23 @@
 @import "tailwindcss";
+@plugin './hero.js';
+/* Note: You may need to change the path to fit your project structure */
+@source '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
+@custom-variant dark (&:is(.dark *));
 
+
+/* navbar active links  */
+
+.active {
+    @apply border-b-2 border-blue-700 font-semibold
+}
+
+@utility container {
+    margin-inline: auto;
+    padding-inline: 2rem;
+}
+h1{
+    @apply text-3xl font-semibold
+}
+.flex-center{
+    @apply flex items-center justify-center
+}

@@ -1,24 +1,14 @@
-import { Button, Form, Input, Select, SelectItem } from '@heroui/react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import axios from 'axios';
-import { useContext, useState } from 'react';
+import { Form, Input, Select, SelectItem } from '@heroui/react';
+import { Button } from '@heroui/react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
-import * as z from 'zod';
-import { AuthContext } from './../../Context/AuthContext/AuthContext';
 
-export default function Login() {
+export default function Register() {
     const [isVisible, setIsVisible] = useState(false);
-    const { setUserToken } = useContext(AuthContext)
-    const [errorMsg, setErrorMsg] = useState(null)
-    const [isLoading, setIsLoading] = useState(false)
-    const navigate = useNavigate()
+
     const toggleVisibility = () => setIsVisible(!isVisible);
-    const schema = z.object({
-        email: z.string().trim().nonempty('email is requried').email('invalid email'),
-        password: z.string().trim().nonempty('password is requried')
-    })
-    const { handleSubmit, register, formState: { errors } } = useForm(
+
+    const { handleSubmit, register, formState: { errors }, getValues } = useForm(
         {
             'defaultValues': {
                 "name": '',
@@ -28,32 +18,41 @@ export default function Login() {
                 "dateOfBirth": '',
                 "gender": ''
             },
-            resolver: zodResolver(schema)
+            mode: 'onTouched'
         }
     );
-    const handleLogin = (values) => {
-        setIsLoading(true)
-        setErrorMsg(null)
-        axios.post('https://linked-posts.routemisr.com/users/signin', values).then(((response) => {
-            if (response.data.message === 'success') {
-                setUserToken(response.data.token)
-                localStorage.setItem('token', response.data.token)
-                navigate('/')
-            }
-        })).catch(() => {
-            setErrorMsg("incorrect email or password")
-        }).finally(() => {
-            setIsLoading(false)
-        })
-        
-    };
+    const pasword = getValues('password')
+    const handleRegister = (values) => {
+        // call api
+        console.log(values);
+
+    }
+    console.log(errors);
     return (
-        <main className='bg-primary-100 h-screen flex justify-center items-center' >
-            <div className='mb-20 w-full sm:w-10/12 md:w-1/2 p-4 bg-gradient-to-b bg-white/30 backdrop-blur-sm border-1 border-gray-50/30 rounded-2xl'>
-                <h1 className='my-4 ps-1'>Login Now</h1>
-                {errorMsg &&
-                    <div className='bg-red-400 capitalize text-white p-2 rounded-2xl my-4'><span>{errorMsg}</span></div>}
-                <Form onSubmit={handleSubmit(handleLogin)} autoComplete='on'>
+        <main className='bg-primary-100 h-screen overflow-hidden' >
+            <div className='w-full sm:w-10/12 md:w-1/2 p-4 mt-10 bg-gradient-to-b mx-auto bg-white/30 backdrop-blur-sm border-1 border-gray-50/30 rounded-2xl'>
+                <h1>Register Now</h1>
+                <Form onSubmit={handleSubmit(handleRegister)} autoComplete='on'>
+                    <Input
+                        classNames={{
+                            inputWrapper: "bg-white",
+                        }}
+                        className="w-full my-4"
+                        errorMessage={errors.name?.message}
+                        isInvalid={Boolean(errors.name)}
+                        label="Name"
+                        type="text"
+                        name='name'
+                        variant="bordered"
+                        autoComplete="name"
+                        {...register('name', {
+                            required: 'user name is required ',
+                            minLength: {
+                                value: 3,
+                                message: 'user name must be at least 3 characters'
+                            }
+                        })}
+                    />
                     <Input
                         classNames={{
                             inputWrapper: "bg-white",
@@ -66,7 +65,13 @@ export default function Login() {
                         name='email'
                         autoComplete="email"
                         variant="bordered"
-                        {...register('email')}
+                        {...register('email', {
+                            required: 'email is requerid',
+                            pattern: {
+                                value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                                message: 'email is not valid'
+                            }
+                        })}
                     />
                     <Input
                         classNames={{
@@ -94,9 +99,63 @@ export default function Login() {
                         type={isVisible ? "text" : "password"}
                         name='password'
                         variant="bordered"
-                        {...register('password')}
+                        {...register('password', {
+                            required: 'Please enter your password',
+                            pattern: {
+                                value: /[a-zA-Z0-9]{2,}/,
+                                message: 'password must be at least 2 characters'
+                            }
+                        }
+                        )}
                     />
-                    <Button type='submit' isDisabled={isLoading} isLoading={isLoading} variant='shadow' className='bg-primary text-white'>{isLoading ? 'loading' : 'Login'}</Button>
+                    <Input
+                        classNames={{
+                            inputWrapper: "bg-white",
+                        }}
+                        className="w-full mb-4"
+                        errorMessage={errors.rePassword?.message}
+                        isInvalid={Boolean(errors.rePassword)}
+                        label="Confirm Password"
+                        autoComplete="new-password"
+                        type="password"
+                        name='rePassword'
+                        variant="bordered"
+                        {...register('rePassword', {
+                            required: 'Please confirm your password',
+                            validate: (value) =>
+                                value === pasword || 'Password do not match'
+                        }
+                        )}
+                    />
+                    <Input
+                        classNames={{
+                            inputWrapper: "bg-white",
+                        }}
+                        className="w-full mb-4"
+                        errorMessage="Please enter a valid Date of Birth"
+                        isInvalid={false}
+                        label="Date of Birth"
+                        type="date"
+                        name='dateOfBirth'
+                        variant="bordered"
+                        {...register('dateOfBirth')}
+                    />
+                    <Select
+                        classNames={{
+                            trigger: "bg-white",
+                        }}
+                        className="w-full mb-4"
+                        defaultSelectedKeys={["male"]}
+                        label="Gender"
+                        placeholder="Select a gender"
+                        variant="bordered"
+                        name='gender'
+                        {...register('gender')}
+                    >
+                        <SelectItem key='male'>Male</SelectItem>
+                        <SelectItem key='female'>Female</SelectItem>
+                    </Select>
+                    <Button type='submit' variant='shadow' className='bg-primary text-white'>Register</Button>
                 </Form>
             </div>
         </main>
