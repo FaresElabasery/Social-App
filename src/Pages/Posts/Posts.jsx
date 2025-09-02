@@ -1,52 +1,37 @@
-import axios from 'axios';
-import { useContext, useEffect, useState } from 'react';
-import PostSkeleton from '../../Components/PostSkeleton/PostSkeleton';
-import PostCard from '../../Components/PostCard/PostCard';
-import { AuthContext } from './../../Context/AuthContext/AuthContext';
+import { toast } from 'react-toastify';
 import AddEditPost from '../../Components/AddEditPost/AddEditPost';
+import PostCard from '../../Components/PostCard/PostCard';
+import PostSkeleton from '../../Components/PostSkeleton/PostSkeleton';
+import usePosts from '../../Hooks/usePosts';
+import { ToastConfig } from '../../utils/ToastConfig';
+
 
 export default function Posts() {
-    const { userToken: token } = useContext(AuthContext)
-    const [ShowInput, setShowInput] = useState(false)
-    const [allPost, setAllPost] = useState([])
-    function getAllPosts() {
-        axios(`${import.meta.env.VITE_BASE_URL}/posts`, {
-            params: {
-                limit: 10,
-                page: 1
-            },
-            headers: {
-                token
-            }
-
-        }).then((res) => {
-            if (res.data.message === "success") {
-                setAllPost(res.data.posts)
-                console.log(res.data.posts)
-            }
-        }).catch((error) => {
-            return console.log(error);
-        })
+    const { data, isLoading, isError, error } = usePosts('allPosts')
+    if (isLoading) {
+        return <div className='w-full sm:w-10/12 lg:w-1/2 my-3 mx-auto px-4'>
+            <PostSkeleton />
+            <PostSkeleton />
+            <PostSkeleton />
+        </div>
     }
-    useEffect(() => {
-        getAllPosts()
-    }, [])
+    if (isError) {
+        toast.error(error?.message || 'Network Error', ToastConfig)
+        return <div className='w-full sm:w-10/12 lg:w-1/2 my-3 mx-auto px-4'>
+            <PostSkeleton />
+        </div>
+    }
+
 
     return (
-        <main className='w-full sm:w-10/12 lg:w-1/2 my-3 mx-auto px-4'>
-            <AddEditPost ShowInput={ShowInput} setShowInput={setShowInput} />
-            {allPost.length > 0 ?
-                allPost.map(post => (
-                    <div key={post._id}>
+        <main className='container'>
+            <AddEditPost />
+            {
+                data?.posts.map(post => (
+                    <div key={post._id} className='my-2'>
                         <PostCard post={post} />
                     </div>
                 ))
-                :
-                <>
-                    <PostSkeleton />
-                    <PostSkeleton />
-                    <PostSkeleton />
-                </>
             }
         </main>
     )

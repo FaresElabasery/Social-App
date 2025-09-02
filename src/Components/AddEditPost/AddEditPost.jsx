@@ -1,10 +1,16 @@
 import { Button, Form, Textarea } from '@heroui/react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { useRef, useState } from 'react';
-import uploadIcon from "../../assets/uploadIcon.svg";
+import { useContext, useRef, useState } from 'react';
+import { toast } from 'react-toastify';
 import { useClickAway } from 'react-use';
-import { Bounce, toast } from 'react-toastify';
+import uploadIcon from "../../assets/uploadIcon.svg";
+import { ToastConfig } from '../../utils/ToastConfig';
+
+import { AuthContext } from '../../Context/AuthContext/AuthContext';
 export default function AddEditPost() {
+    const queryClient = useQueryClient()
+    const { userInfo,userToken } = useContext(AuthContext)
     const [ShowInput, setShowInput] = useState(false)
     const [image, setImage] = useState(null);
     const [body, setBody] = useState('');
@@ -15,7 +21,6 @@ export default function AddEditPost() {
 
     const handlePeview = (e) => {
         const file = e.target.files[0];
-        console.log(file);
         if (file) {
             setImage(file)
         }
@@ -27,44 +32,47 @@ export default function AddEditPost() {
         body && image && setShowInput(false)
     }
 
-    const CreatePost = () => {
-        const toastId = toast.loading('Posting...', {
-            position: "top-center",
-        });
+    const CreatePost = async ({ userId }) => {
         const formData = new FormData()
         body && formData.append('body', body)
         image && formData.append('image', image)
-        axios.post(`${import.meta.env.VITE_BASE_URL}/posts`, formData, {
+        const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/posts`, formData, {
             headers: {
-                token: localStorage.getItem('token')
+                token: userToken
             }
-        }).then(res => {
-            if (res.data.message === 'success') {
-                toast.update(toastId, {
-                    render: 'Post Created!',
-                    type: 'success',
-                    isLoading: false,
-                    position: "top-center",
-                    autoClose: 2000,
-                    transition: Bounce,
-                });
-                clearPost()
-            }
-        }).catch(() => {
+        })
+        return response.data
+
+    }
+    const { mutate: createPost } = useMutation({
+        mutationKey: ['createPost'],
+        mutationFn: CreatePost,
+        onMutate: () => {
+            const toastId = toast.loading('Posting...', {
+                position: "top-center",
+            });
+            return { toastId }
+        },
+        onSuccess: (data, variables, { toastId }) => {
+            queryClient.invalidateQueries({ queryKey: ['allPosts'] })
+            toast.update(toastId, {
+                ...ToastConfig,
+                render: 'Post Created!',
+                type: 'success',
+                isLoading: false,
+            });
+            queryClient.invalidateQueries({ queryKey: ['userPosts', variables.userId] })            
+            clearPost()
+        },
+        onError: (data, variables, { toastId }) => {
             toast.update(toastId, {
                 render: 'Network Error',
                 type: 'error',
                 isLoading: false,
-                position: "top-center",
-                autoClose: 2000,
-                transition: Bounce,
+                ...ToastConfig
             });
-        })
-
-    }
-
-
-
+        }
+    })
     return (
         <div ref={ref} className='create-post w-full bg-[#F4F4F5] rounded-2xl' >
             {!ShowInput ? <p onClick={() => setShowInput(true)} className='capitalize p-3 bg-gray-100 rounded-2xl text-default-500 cursor-text font-semibold animate-appearance-in duration-250'>What is in your mind ?</p>
@@ -100,7 +108,7 @@ export default function AddEditPost() {
                         />
                         <div className='flex flex-nowrap'>
                             <Button size='sm' className='mx-1' variant="ghost" type='reset' onPress={() => { clearPost() }}>Cancel</Button>
-                            <Button size='sm' className='mx-1' color='primary' onPress={() => CreatePost()} variant="solid">Post</Button>
+                            <Button size='sm' className='mx-1' color='primary' onPress={() => createPost({ userId: userInfo?.user?._id })} variant="solid">Post</Button>
                         </div>
                     </div>
                 </Form>

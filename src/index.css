@@ -4,6 +4,32 @@
 @source '../node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}';
 @custom-variant dark (&:is(.dark *));
 
+@font-face {
+    font-family: 'Inter';
+    src: url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+
+/* theme */
+:root {
+    --color-primary: #007bff;
+    --color-secondary: #565D6D;
+    --color-success: #28a745;
+    --color-light: #f8f9fa;
+    --color-dark: #343a40;
+}
+
+@theme {
+    --color-primary: var(--color-primary);
+    --color-secondary: var(--color-secondary);
+    --color-success: var(--color-success);
+    --color-light: var(--color-light);
+    --color-dark: var(--color-dark);
+}
 
 /* navbar active links  */
 
@@ -15,9 +41,15 @@
     margin-inline: auto;
     padding-inline: 2rem;
 }
-h1{
+
+.container {
+    @apply w-full sm:w-10/12 lg:max-w-4xl my-3 mx-auto px-4;
+}
+
+h1 {
     @apply text-3xl font-semibold
 }
-.flex-center{
+
+.flex-center {
     @apply flex items-center justify-center
 }

@@ -12,17 +12,20 @@ import Profile from './Pages/Profile/Profile';
 import Register from './Pages/Register/Register';
 import { ToastContainer } from "react-toastify";
 import {
-  useQuery,
-  useMutation,
-  useQueryClient,
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query'
+import { useState } from "react";
 
 function App() {
+  const [isDarkMode, setIsDarkMode] = useState(false)
+
+  const handleDarkMode = () => {
+    setIsDarkMode(pev => !pev)
+  }
   const routes = createBrowserRouter([{
     path: "/",
-    element: <Layout />,
+    element: <Layout handleDarkMode={handleDarkMode} />,
     children: [{
       index: true,
       element: <Home />
@@ -59,12 +62,14 @@ function App() {
   // create a client
   const client = new QueryClient()
   return (
-    <AuthContextProvider>
-    <QueryClientProvider client={client}>
-      <ToastContainer />
-      <RouterProvider router={routes} />
-    </QueryClientProvider>
-    </AuthContextProvider>
+    <div className={`${isDarkMode ? 'dark' : ''}`}>
+      <QueryClientProvider client={client}>
+        <AuthContextProvider>
+          <ToastContainer />
+          <RouterProvider router={routes} />
+        </AuthContextProvider>
+      </QueryClientProvider>
+    </div>
   )
 }
 

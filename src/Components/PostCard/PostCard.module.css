@@ -1,0 +1,7 @@
+.postText {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    padding-right: 80px;
+    text-decoration: underline;
+}
