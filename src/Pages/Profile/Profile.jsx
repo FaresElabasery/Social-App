@@ -3,11 +3,10 @@ import { useContext, useEffect, useState } from "react";
 import { LiaSortAmountDownSolid, LiaSortAmountUpAltSolid } from "react-icons/lia";
 import { MdModeEditOutline } from "react-icons/md";
 import { toast } from "react-toastify";
-import ProfilePhotoModal from "../../Components/ProfilePhotoModal/ProfilePhotoModal";
 import ProfileCardSkeleton from "../../Components/ProfileCardSkeleton/ProfileCardSkeleton";
+import ProfilePhotoModal from "../../Components/ProfilePhotoModal/ProfilePhotoModal";
 import { AuthContext } from "../../Context/AuthContext/AuthContext";
 import usePosts from "../../Hooks/usePosts";
-import useUpdate from "../../Hooks/useUpdate";
 import { ToastConfig } from "../../utils/ToastConfig";
 import PostCard from './../../Components/PostCard/PostCard';
 import ProfileSkeleton from './../../Components/ProfileSkeleton/ProfileSkeleton';
@@ -15,8 +14,6 @@ import ProfileSkeleton from './../../Components/ProfileSkeleton/ProfileSkeleton'
 export default function Profile() {
     const { userInfo, isUserInfoLoading } = useContext(AuthContext)
     const { isOpen, onOpen, onClose } = useDisclosure();
-    const [image, setImage] = useState(null)
-
 
     // get user Posts
     const { data: userPosts, isPending: isUserPostsLoading, isError: isUserPostsError } = usePosts(['userPosts', userInfo?.user?._id])
@@ -39,29 +36,6 @@ export default function Profile() {
             setIsSortPosts(true)
         }
     }
-
-    // validate the image 
-    const handleChangeProfilePicture = (e) => {
-        let file = e.target.files[0];
-        if (file && file.size > 1024 * 1024) {
-            toast.error('Please upload a file less than 1MB', ToastConfig)
-            setImage(null)
-        } else if (file.type !== 'image/jpeg' && file.type !== 'image/png' && file.type !== 'image/jpg') {
-            toast.error('Please upload a valid image', ToastConfig)
-            setImage(null)
-        }
-        else {
-            setImage(file)
-        }
-    }
-
-    // reset the image field
-    const resetImage = () => {
-        setImage(null)
-        onClose()
-    }
-    // upload Profile Picture of user
-    const { mutate: uploadProfilePicture, isPending: isUploading } = useUpdate('uploadProfilePicture', image, resetImage)
 
     if (isUserPostsError) {
         toast.error('Error for Getting Posts', ToastConfig)
@@ -90,15 +64,7 @@ export default function Profile() {
                                         img: "object-cover object-top",
                                     }}
                                 />
-
-                                <input
-                                    type="file"
-                                    className="hidden"
-                                    id='upload'
-                                    accept="image/jpeg, image/png, image/jpg"
-                                    onChange={handleChangeProfilePicture}
-                                />
-                                <ProfilePhotoModal isOpen={isOpen} onClose={onClose} resetImage={resetImage} userInfo={userInfo} image={image} setImage={setImage} uploadProfilePicture={uploadProfilePicture} isUploading={isUploading} />
+                                <ProfilePhotoModal isOpen={isOpen} onClose={onClose} userInfo={userInfo}/>
                                 <label htmlFor="upload" className=' flex items-center justify-center'>
                                     <span onClick={onOpen} className="absolute bg-white border-2 hover:bg-primary hover:text-white duration-250 group  shadow-lg  text-primary size-7 rounded-full flex-center bottom-2 right-2 cursor-pointer">
                                         <MdModeEditOutline className="group-hover:scale-120 duration-250" size={15} />

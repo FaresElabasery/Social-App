@@ -1,27 +1,35 @@
-import { Avatar, Button, Card, CardBody, CardFooter, CardHeader, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Image, useDisclosure } from "@heroui/react";
+import { Avatar, Button, Card, CardBody, CardFooter, CardHeader, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Form, Image, Input, useDisclosure } from "@heroui/react";
 import moment from "moment/moment";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { BsThreeDots } from "react-icons/bs";
 import { FaCaretRight } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import placeholder from '../../assets/userPlaceHolder.png';
 import ConfirmModal from "../../ConfirmModal/ConfirmModal";
+import { AuthContext } from "../../Context/AuthContext/AuthContext";
+import useAdd from "../../Hooks/useAdd";
 import useDelete from "../../Hooks/useDelete";
 import useUpdate from "../../Hooks/useUpdate";
 import { ToastConfig } from "../../utils/ToastConfig";
 import UpdatePostModal from "../UpdatePostModal/UpdatePostModal";
 import styles from './PostCard.module.css';
+import CommentCard from "../CommentCard/CommentCard";
 
-export default function PostCard({ post, from, isUserPost }) {
+
+
+export default function PostCard({ post, from }) {
+    const { userInfo } = useContext(AuthContext)
+    const navigate = useNavigate()
     const { isOpen: isConfirmOpen, onOpen: onConfirmOpen, onOpenChange: onConfirmOpenChange } = useDisclosure();
     const { isOpen, onClose, onOpen } = useDisclosure();
     const [isFollowed, setIsFollowed] = useState(false);
     const [MoreComments, setMoreComments] = useState(2);
     const [image, setImage] = useState(post.image || null)
     const [body, setBody] = useState(post.body || null)
-
-    const navigate = useNavigate()
+    const SortedComments = post.comments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    const [isUserPost, setIsUserPost] = useState(false)
+    const [isEditingComment, setisEditingComment] = useState(false)
 
     // navigate to post details
     const handlePostDetails = () => {
@@ -64,10 +72,27 @@ export default function PostCard({ post, from, isUserPost }) {
         onClose()
     }
 
-    const { mutate: updatePost, isPending: isUpdatePending } =useUpdate('updatePost', image, onClose, body, post._id, resetUpdateForm)
+    const { mutate: updatePost, isPending: isUpdatePending } = useUpdate('updatePost', image, onClose, body, post._id, resetUpdateForm)
+
+    // add comments 
+    const { register, handleSubmit, reset, formState: { errors } } = useForm({
+        defaultValues: {
+            content: ''
+        }
+        ,
+        mode: 'onSubmit'
+    })
+    // add comment mutation
+    const { mutate: addCommentMutate, isPending: isAddCommentPending } = useAdd('addComment', post._id, reset)
+
+    useEffect(() => {
+        if (userInfo) {
+            setIsUserPost(userInfo.user._id == post.user._id)
+        }
+    }, [userInfo])
 
     return (
-        <Card className={` animate-appearance-in duration-250  ${from != 'PostDetails' ? 'group' : ''} ${isPending || isUpdatePending ? 'animate-fade-out' : ''} ${isSuccess ? 'animate-appearance-out' : ''}`}>
+        <Card className={` animate-appearance-in duration-250  ${from != 'PostDetails' ? 'group' : ''} ${isPending || isUpdatePending ? 'animate-blink pointer-events-none' : ''} ${isSuccess ? 'h-0 transition-all duration-250 pointer-events-none' : ''}`} >
             <CardHeader className="justify-between">
                 <div className="flex gap-5">
                     <Avatar
@@ -108,15 +133,15 @@ export default function PostCard({ post, from, isUserPost }) {
                         </DropdownMenu>
                     </Dropdown>}
                 <ConfirmModal deletePost={deletePost} isConfirmOpen={isConfirmOpen} onConfirmOpenChange={onConfirmOpenChange} />
-                <UpdatePostModal isOpen={isOpen} onClose={onClose} handleUpdatePhotoPost={handleUpdatePhotoPost} updatePost={updatePost} resetUpdateForm={resetUpdateForm} image={image} setImage={setImage} body={body} setBody={setBody} isUpdatePending={isUpdatePending} post={post}/>
+                <UpdatePostModal isOpen={isOpen} onClose={onClose} handleUpdatePhotoPost={handleUpdatePhotoPost} updatePost={updatePost} resetUpdateForm={resetUpdateForm} image={image} setImage={setImage} body={body} setBody={setBody} isUpdatePending={isUpdatePending} post={post} />
             </CardHeader>
-            <CardBody onClick={handlePostDetails} className={`px-3 py-0 text-small text-default-500 overflow-hidden ${from != 'PostDetails' ? 'cursor-pointer' : ''}`}>
+            <CardBody onClick={handlePostDetails} className={`px-4 py-1 text-small text-default-500 overflow-hidden ${from != 'PostDetails' ? 'cursor-pointer' : ''}`}>
                 <p className={`${post.image == undefined ? '!pb-0' : ' ps-1'} ${from == 'profile' ? styles.postText : ''}`}>{from == 'profile' ? post.body.split(' ').slice(0, 10).join(' ') : post.body}</p>
                 {
                     post.image == undefined || from == 'profile' ? <></> :
                         <Image
                             alt={post.body}
-                            className={`object-cover group-hover:cursor-zoom-in  group-hover:scale-102 transition-all duration-250 rounded-xl ${from == 'PostDetails' ?
+                            className={`object-cover group-hover:cursor-zoom-in py-2  group-hover:scale-102 transition-all duration-250 rounded-xl ${from == 'PostDetails' ?
                                 '!h-full' : 'h-90'}`}
                             src={post.image}
                             width={'100%'}
@@ -145,29 +170,10 @@ export default function PostCard({ post, from, isUserPost }) {
                 }
             </CardFooter>
             {from != 'profile' && post.comments?.length > 0 && <>
-                {post.comments.slice(0, MoreComments).map(comment => (
-                    <CardFooter className="comments flex justify-between items-start" key={comment._id}>
-                        <div className="flex gap-5">
-                            <Avatar
-                                isBordered
-                                radius="full"
-                                size="md"
-                                src={comment?.commentCreator.photo}
-                                fallback={<Avatar isBordered
-                                    radius="full"
-                                    size="md"
-                                    src={placeholder} />}
-                                showFallback
-                            />
-                            <div className="flex flex-col gap-1 items-start justify-center">
-                                <h4 className="text-small font-semibold leading-none text-default-600">{comment?.commentCreator.name}</h4>
-                                <h5 className="text-small tracking-tight text-default-400">{comment.content}</h5>
-                            </div>
-                        </div>
-                        <span className="text-small text-default-400 capitalize">{moment(comment.createdAt).startOf('now').fromNow()}</span>
-                    </CardFooter>
+                {SortedComments.slice(0, MoreComments).map(comment => (
+                    <CommentCard comment={comment} post={post} key={comment._id} setisEditingComment={setisEditingComment} />
                 ))}
-                {MoreComments <= post.comments?.length && (
+                {MoreComments < post.comments?.length && (
                     <CardFooter className="comments flex justify-between items-start" >
                         <div className="flex flex-col gap-1 items-start justify-center">
                             <h5 className="text-small tracking-tight text-default-400 hover:text-default-500 cursor-pointer relative group/comment" onClick={() => handleSeeMoreComments()}><span>Load More Comments</span><span className="absolute  top-1/2 -translate-y-1/2 group-hover/comment:translate-x-1 group-hover/comment:scale-120  duration-250"><FaCaretRight size={15} /></span></h5>
@@ -176,7 +182,36 @@ export default function PostCard({ post, from, isUserPost }) {
                 )}
             </>
             }
-        </Card>
+            {
+                from != 'profile' && !isEditingComment &&
+                <CardFooter CardFooter className=" flex justify-between items-start" >
+                    <Form className="flex flex-row gap-2 w-full items-center" onSubmit={handleSubmit(addCommentMutate)}>
+                        <Input
+                            placeholder="Add a comment"
+                            radius="md"
+                            size="md"
+                            isInvalid={Boolean(errors.content)}
+                            errorMessage={errors.content?.message}
+                            variant="bordered"
+                            {...register('content', {
+                                validate: (value) => {
+                                    if (value.trim().length > 30) {
+                                        return 'Comment must be at most 30 characters'
+                                    }
+                                    if (value.trim().length < 2) {
+                                        return 'Comment must be at least 2 characters'
+                                    }
+                                }
+                            })}
+                            isDisabled={isAddCommentPending}
+                        />
+                        <Button color="primary" type="submit" radius="md" variant="solid" isLoading={isAddCommentPending} >
+                            Comment
+                        </Button>
+                    </Form>
+                </CardFooter>
+            }
+        </Card >
     );
 }
 

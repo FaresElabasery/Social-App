@@ -5,12 +5,33 @@ import {
     ModalBody,
     ModalContent,
     ModalFooter,
-    ModalHeader,
-    Textarea
+    ModalHeader
 } from "@heroui/react";
 import { MdModeEditOutline } from "react-icons/md";
+import useUpdate from "../../Hooks/useUpdate";
+import { ValidationImage } from "../../utils/ValidationImage";
+import { useState } from "react";
 
-export default function ProfilePhotoModal({ isOpen, userInfo, image, handleChangeProfilePicture, uploadProfilePicture, resetImage, isUploading }) {
+export default function ProfilePhotoModal({ isOpen, userInfo, onClose }) {
+    const [image, setImage] = useState(null)
+    // validate the image 
+    const handleChangeProfilePicture = (e) => {
+        let file = e.target.files[0];
+        if (ValidationImage(e)) {
+            setImage(file)
+        }
+        else {
+            setImage(null)
+        }
+    }
+
+    // reset the image field
+    const resetImage = () => {
+        setImage(null)
+        onClose()
+    }
+    // upload Profile Picture of user
+    const { mutate: uploadProfilePicture, isPending: isUploading } = useUpdate('uploadProfilePicture', image, resetImage)
     return (
         <Modal placement="top" isOpen={isOpen} size={'md'} onClose={resetImage}>
             <ModalContent>
@@ -24,7 +45,7 @@ export default function ProfilePhotoModal({ isOpen, userInfo, image, handleChang
                             classNames={{
                                 img: "object-cover object-top",
                             }}
-                            src={image ? URL.createObjectURL(image) : userInfo?.user?.photo}
+                            src={image instanceof File ? URL.createObjectURL(image) : userInfo?.user?.photo}
                             alt={userInfo?.user?.name || 'No Image Selected'}
                             color={'primary'}
                             fallback="No image Selected"

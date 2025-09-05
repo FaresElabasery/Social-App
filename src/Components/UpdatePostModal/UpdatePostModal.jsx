@@ -8,7 +8,6 @@ import {
     ModalHeader,
     Textarea
 } from "@heroui/react";
-import { useEffect } from "react";
 import { MdModeEditOutline } from "react-icons/md";
 
 export default function UpdatePostModal({ image, body, setBody, updatePost, isOpen, handleUpdatePhotoPost, resetUpdateForm, isUpdatePending }) {

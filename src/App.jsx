@@ -1,8 +1,12 @@
+import {
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query';
+import { useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 import ProtectedRoutes from "./Components/ProtectedRoutes/ProtectedRoutes";
 import { AuthContextProvider } from "./Context/AuthContext/AuthContext";
-import About from './Pages/About/About';
-import Home from './Pages/Home/Home';
 import Layout from "./Pages/Layout/Layout";
 import Login from './Pages/login/login';
 import NotFound from './Pages/NotFound/NotFound';
@@ -10,12 +14,6 @@ import PostDetails from './Pages/PostDetails/PostDetails';
 import Posts from './Pages/Posts/Posts';
 import Profile from './Pages/Profile/Profile';
 import Register from './Pages/Register/Register';
-import { ToastContainer } from "react-toastify";
-import {
-  QueryClient,
-  QueryClientProvider,
-} from '@tanstack/react-query'
-import { useState } from "react";
 
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(false)
@@ -28,7 +26,7 @@ function App() {
     element: <Layout handleDarkMode={handleDarkMode} />,
     children: [{
       index: true,
-      element: <Home />
+      element: <ProtectedRoutes><Posts /></ProtectedRoutes>
     }, {
       path: "/login",
       element: <Login />
@@ -40,14 +38,6 @@ function App() {
     {
       path: "/profile",
       element: <ProtectedRoutes><Profile /></ProtectedRoutes>
-    },
-    {
-      path: "/about",
-      element: <ProtectedRoutes><About /></ProtectedRoutes>
-    },
-    {
-      path: "/posts",
-      element: <ProtectedRoutes><Posts /></ProtectedRoutes>
     },
     {
       path: "/postDetails/:id",

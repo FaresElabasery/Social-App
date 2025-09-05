@@ -19,7 +19,7 @@ export function AuthContextProvider({ children }) {
         queryFn: getUserInfo,
     })
 
-    return <AuthContext.Provider value={{ userToken, setUserToken, userInfo, isUserInfoLoading}}>
+    return <AuthContext.Provider value={{ userToken, setUserToken, userInfo, isUserInfoLoading }}>
         {children}
     </AuthContext.Provider>
 }

@@ -23,7 +23,6 @@ export default function Register() {
             message: 'must be above 18 Years'
         }).transform((value) => `${value.getFullYear()}-${value.getMonth() + 1}-${value.getDate()}`),
         gender: z.enum(['male', 'female'], 'Gender is required')
-
     })
     const { handleSubmit, register, formState: { errors }, getValues } = useForm(
         {

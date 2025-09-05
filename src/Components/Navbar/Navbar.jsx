@@ -7,42 +7,52 @@ import {
   NavbarMenuItem,
   NavbarMenuToggle
 } from "@heroui/navbar";
-import { Switch } from "@heroui/react";
-
-import { Button } from "@heroui/react";
+import {
+  Avatar,
+  Button,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownSection,
+  DropdownTrigger,
+  Switch,
+  useDisclosure,
+  User,
+} from "@heroui/react";
 import { useContext, useEffect, useState } from 'react';
+import { IoIosArrowDropdownCircle } from "react-icons/io";
 import { TfiWorld } from "react-icons/tfi";
-import { NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from "../../Context/AuthContext/AuthContext";
+import ChangePasswordModal from "../ChangePasswordModal/ChangePasswordModal";
+import ProfilePhotoModal from "../ProfilePhotoModal/ProfilePhotoModal";
 
-export default function NavbarCompoenet({handleDarkMode}) {
+export default function NavbarCompoenet({ handleDarkMode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { setUserToken, userToken } = useContext(AuthContext)
+  const { setUserToken, userToken, userInfo } = useContext(AuthContext)
   const navigate = useNavigate()
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isOpenChangePassword, onOpen: onOpenChangePassword, onClose: onCloseChangePassword } = useDisclosure();
+  // upload Profile Picture of user
   const [menuItems, setMenuItems] = useState([
     "Home",
-    "About",
     "Login",
     "Profile",
-    "Posts",
     "SignUp"
   ])
   useEffect(() => {
     if (userToken) {
       setMenuItems([
         "Home",
-        "About",
         "Profile",
-        "Posts"
       ])
     } else {
       setMenuItems([
-        "Home",
         "Login",
         "SignUp"
       ])
     }
-  }, [userToken]) // هيتنفذ بس لما userToken يتغير
+  }, [userToken])
 
 
   const handleLogout = () => {
@@ -53,68 +63,104 @@ export default function NavbarCompoenet({handleDarkMode}) {
   return (
     <Navbar onMenuOpenChange={setIsMenuOpen} className="bg-gradient-to-b border-b-1 border-gray-200  ">
       <div className="container flex-center">
-      <NavbarContent justify="start">
-        <NavbarBrand>
-          <p className="font-bold text-inherit flex justify-center items-center"><TfiWorld size={15} /><span className="p-1">Social App</span></p>
-        </NavbarBrand>
-      </NavbarContent>
-      <NavbarContent className="hidden sm:flex gap-4" justify="center">
-        <NavbarItem>
-          <NavLink color="foreground" to="/">
-            Home
-          </NavLink>
-        </NavbarItem>
-        {
-          userToken && <>
-            <NavbarItem >
-              <NavLink aria-current="page" to="/about">
-                About
-              </NavLink>
-            </NavbarItem>
-            <NavbarItem >
-              <NavLink aria-current="page" to="/profile">
-                Profile
-              </NavLink>
-            </NavbarItem>
-            <NavbarItem >
-              <NavLink aria-current="page" to="/posts">
-                Posts
-              </NavLink>
-            </NavbarItem>
-          </>
-        }
-      </NavbarContent>
-      <NavbarContent justify="end">
-        <Switch
-          defaultSelected
-          color="warning"
-          size="sm"
-          thumbIcon={({ isSelected, className }) =>
-            isSelected ? <SunIcon className={className} /> : <MoonIcon className={className} />
-          }
-          onChange={handleDarkMode}
-        >
-        </Switch>
-        {userToken ?
-          <NavbarItem >
-            <Button className="!border-transparent hover:!border-red-400 hover:scale-105" as={NavLink} onPress={handleLogout} color="danger" variant="flat">
-              Log Out
-            </Button>
+        <NavbarContent justify="start">
+          <NavbarBrand>
+            <p as={Link} to='/' className="font-bold text-inherit flex justify-center items-center"><TfiWorld size={15} /><span className="p-1">Social App</span></p>
+          </NavbarBrand>
+        </NavbarContent>
+        <NavbarContent className="hidden sm:flex gap-4" justify="center">
+          <NavbarItem>
           </NavbarItem>
-          :
-          <>
-            <NavbarItem className="hidden md:flex">
-              <NavLink to="/login">Login</NavLink>
-            </NavbarItem>
-            <NavbarItem>
-              <Button className="hover:border-b-2 hover:!border-blue-400 hover:scale-105" as={NavLink} color="primary" to="/register" variant="flat">
-                Sign Up
-              </Button>
-            </NavbarItem>
-          </>
-        }
-      </NavbarContent>
-        </div>
+          {
+            userToken && <>
+              <NavbarItem >
+                <NavLink aria-current="page" to="/">
+                  Home
+                </NavLink>
+              </NavbarItem>
+              <NavbarItem >
+                <NavLink aria-current="page" to="/profile">
+                  Profile
+                </NavLink>
+              </NavbarItem>
+            </>
+          }
+        </NavbarContent>
+        <NavbarContent justify="end">
+          <Switch
+            defaultSelected
+            color="warning"
+            size="sm"
+            thumbIcon={({ isSelected, className }) =>
+              isSelected ? <SunIcon className={className} /> : <MoonIcon className={className} />
+            }
+            onChange={handleDarkMode}
+          >
+          </Switch>
+          {!userToken &&
+            <>
+              <NavbarItem className="hidden md:flex">
+                <NavLink to="/login">Login</NavLink>
+              </NavbarItem>
+              <NavbarItem>
+                <Button className="hover:border-b-2 hover:!border-blue-400 hover:scale-105" as={NavLink} color="primary" to="/register" variant="flat">
+                  Sign Up
+                </Button>
+              </NavbarItem>
+            </>
+          }
+          {userToken &&
+            <span className="relative">
+              <Avatar
+                isBordered
+                as={Link}
+                to={'/profile'}
+                classNames={{
+                  img: "object-cover object-top",
+                }}
+                color="secondary"
+                name="Jason Hughes"
+                size="sm"
+                src={userInfo?.user?.photo}
+              />
+              <ProfilePhotoModal isOpen={isOpen} onClose={onClose} userInfo={userInfo} />
+              <ChangePasswordModal isOpen={isOpenChangePassword} onClose={onCloseChangePassword} />
+              <Dropdown placement="bottom-end" backdrop="opaque" >
+                <DropdownTrigger>
+                  <IoIosArrowDropdownCircle className="bg-white  hover:bg-whitetext-black hover: duration-250 rounded-full absolute top-[80%] right-[10%] translate-x-1/2" />
+                </DropdownTrigger>
+                <DropdownMenu aria-label="Profile Actions" variant="flat" >
+                  <DropdownSection showDivider>
+                    <DropdownItem key="profile" className="h-14 gap-2 opacity-100" as={Link} to='/profile'>
+                      <User
+                        avatarProps={{
+                          size: "sm",
+                          src: userInfo?.user?.photo,
+                          classNames: {
+                            img: 'object-cover object-top'
+                          }
+                        }}
+                        classNames={{
+                          name: "text-default-600",
+                          description: "text-default-500",
+                        }}
+
+                        description={userInfo?.user?.email}
+                        name={userInfo?.user?.name}
+                      />
+                    </DropdownItem>
+                  </DropdownSection>
+                  <DropdownItem key="Change-profile" onClick={onOpen}><label htmlFor="upload">Change Profile Picture</label></DropdownItem>
+                  <DropdownItem key="Change-Password" onClick={onOpenChangePassword}>Change Password</DropdownItem>
+                  <DropdownItem key="logout" className="bg-danger text-white" variant="flat" color="danger" onPress={handleLogout} >
+                    Log Out
+                  </DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
+            </span>
+          }
+        </NavbarContent>
+      </div>
       <NavbarMenuToggle
         aria-label={isMenuOpen ? "Close menu" : "Open menu"}
         className="sm:hidden"
@@ -127,7 +173,7 @@ export default function NavbarCompoenet({handleDarkMode}) {
               color={
                 index === 2 ? "primary" : index === menuItems.length - 1 ? "danger" : "foreground"
               }
-              to={item === "login" ? "/login" : item === "SignUp" ? "/register" : `/${item.toLowerCase()}`}
+              to={item === "Home" ? "/" : item === "login" ? "/login" : item === "SignUp" ? "/register" : `/${item.toLowerCase()}`}
               size="lg"
             >
               {item}

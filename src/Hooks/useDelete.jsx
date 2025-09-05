@@ -15,6 +15,9 @@ export default function useDelete(key, id, from) {
         if (key == 'deletePost') {
             url = `${import.meta.env.VITE_BASE_URL}/posts/${id}`
         }
+        if (key == 'deleteComment') {
+            url = `${import.meta.env.VITE_BASE_URL}/comments/${id}`
+        }
         return axios.delete(url, {
             headers: {
                 token: userToken
@@ -25,7 +28,7 @@ export default function useDelete(key, id, from) {
         mutationKey: [key],
         mutationFn: callApi,
         onSuccess: () => {
-            toast.success('Post Deleted Successfully', ToastConfig)
+            toast.success(`${key.split('delete')[1]} Deleted Successfully`, ToastConfig)
             queryClient.invalidateQueries('allPosts')
             queryClient.invalidateQueries('userPosts')
             if (from == 'PostDetails') {
@@ -33,7 +36,7 @@ export default function useDelete(key, id, from) {
             }
         },
         onError: () => {
-            toast.error('Error in Deleting Post ', ToastConfig)
+            toast.error(`Error in Deleting ${key.split('delete')[1]}`, ToastConfig)
         }
     })
 }
