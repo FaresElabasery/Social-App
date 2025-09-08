@@ -28,7 +28,6 @@ export default function useAdd(key, id, reset) {
         mutationFn: callApi,
         onSuccess: () => {
             toast.success('Comment Added Successfully', ToastConfig)
-            queryClient.invalidateQueries({ queryKey: ['userInfo'] })
             queryClient.invalidateQueries({ queryKey: ['userPosts'] })
             queryClient.invalidateQueries({ queryKey: ['allPosts'] })
             queryClient.invalidateQueries({ queryKey: ['postDetails', id] })

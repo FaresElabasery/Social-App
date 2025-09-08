@@ -21,12 +21,8 @@ export default function Login() {
     const { handleSubmit, register, formState: { errors } } = useForm(
         {
             'defaultValues': {
-                "name": '',
                 "email": '',
                 "password": '',
-                "rePassword": '',
-                "dateOfBirth": '',
-                "gender": ''
             },
             resolver: zodResolver(schema)
         }
@@ -45,7 +41,6 @@ export default function Login() {
         }).finally(() => {
             setIsLoading(false)
         })
-        
     };
     return (
         <main className='bg-primary-100 h-screen flex justify-center items-center' >

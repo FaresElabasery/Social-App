@@ -1,0 +1,13 @@
+.mainCard {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2)), url('../../assets/image.png');
+    background-size: 120%;
+    background-position: left bottom;
+    background-repeat: no-repeat;
+    transition: all 1s ease-in-out;
+}
+
+.mainCard:hover,
+.mainCard:focus-within {
+    background-size: 150%;
+    background-position: left top;
+}

@@ -1,18 +1,15 @@
 import { Button, Form, Input, Select, SelectItem } from '@heroui/react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import axios from 'axios';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
 import * as z from 'zod';
-
+import useAuth from '../../Hooks/useAuth';
+import styles from './Register.module.css';
 export default function Register() {
     const [isVisible, setIsVisible] = useState(false);
-    const [errorMsg, setErrorMsg] = useState(null)
-    const [isLoading, setIsLoading] = useState(false)
-    const navigate =useNavigate()
+    const [loginVisible, setLoginVisible] = useState(false)
     const toggleVisibility = () => setIsVisible(!isVisible);
-    const schema = z.object({
+    const registerSchema = z.object({
         name: z.string().trim().nonempty('name is requried').min(3, 'must be at least 3 char'),
         email: z.string().trim().nonempty('email is requried').email('invalid email'),
         password: z.string().trim().nonempty('password is requried').regex(/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/, 'password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character'),
@@ -24,7 +21,11 @@ export default function Register() {
         }).transform((value) => `${value.getFullYear()}-${value.getMonth() + 1}-${value.getDate()}`),
         gender: z.enum(['male', 'female'], 'Gender is required')
     })
-    const { handleSubmit, register, formState: { errors }, getValues } = useForm(
+    const loginSchema = z.object({
+        email: z.string().trim().nonempty('email is requried').email('invalid email'),
+        password: z.string().trim().nonempty('password is requried').regex(/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/, 'password must contain at least 8 characters, one uppercase, one lowercase, one number and one special character'),
+    })
+    const { handleSubmit, register, formState: { errors }, setError, getValues, clearErrors } = useForm(
         {
             'defaultValues': {
                 "name": '',
@@ -35,37 +36,51 @@ export default function Register() {
                 "gender": ''
             },
             mode: 'onTouched',
-            resolver: zodResolver(schema)
+            resolver: zodResolver(registerSchema)
         }
     );
-    const handleRegister = (values) => {
-        setIsLoading(true)
-        setErrorMsg(null)
-        axios.post('https://linked-posts.routemisr.com/users/signup', values).then(( ()=> {
-            navigate('/login')
-        })).catch(response => {
-            setErrorMsg(response.response.data.error)
-        }).finally(() => {
-            setIsLoading(false)
-        })
 
-        console.log(values);
 
-    }
-    console.log(errors);
+    const { handleSubmit: loginSubmit, register: loginRegister, formState: { errors: loginErrors } } = useForm(
+        {
+            'defaultValues': {
+                "email": '',
+                "password": '',
+            },
+            mode: 'onTouched',
+            resolver: zodResolver(loginSchema)
+        }
+    );
+
+    const { mutate, isPending: registerLoading, isError: registerError, error: registerErrorMsg } = useAuth('signup')
+    const { mutate: loginMutate, isPending: loginLoading, isError: loginError, error: loginErrorMsg } = useAuth('signin')
+
+    useEffect(() => {
+        if (registerError) {
+            setError("email", {
+                type: "manual",
+                message: registerErrorMsg?.response?.data?.error
+            })
+        }
+    }, [registerError, setError])
+
+
     return (
-        <main className='bg-primary-100' >
+        <main className='bg-[#E1E8EE]' >
             <div className='overflow-hidden'>
-                <div className='my-10 w-full sm:w-10/12 md:w-1/2 p-4 bg-gradient-to-b mx-auto bg-white/30 backdrop-blur-sm border-1 border-gray-50/30 rounded-2xl'>
-                    <h1>Register Now</h1>
-                    {errorMsg &&
-                        <div className='bg-red-400 capitalize text-white p-2 rounded-2xl mt-4'><span>{errorMsg}</span></div>}
-                    <Form onSubmit={handleSubmit(handleRegister)} autoComplete='on'>
+                <div className={`${styles.mainCard} my-12 w-full sm:max-w-[450px] sm:w-10/12 md:w-1/2 p-4 bg-gradient-to-b mx-auto bg-white/30 backdrop-blur-sm  border-gray-50/30 rounded-2xl bg-cover relative overflow-hidden pb-10`}>
+                    <button className={`duration-700 w-full transition-transform ${loginVisible ? '-translate-y-2' : 'translate-y-5 cursor-pointer '}`} onClick={() => !loginVisible && setLoginVisible(!loginVisible)}>
+                        <h1 className={`text-center text-gray-500 duration-700 pt-5 !text-lg ${loginVisible ? 'hidden' : ''}`}>or</h1>
+                        <h1 className={`text-center text-white duration-700 ${loginVisible ? 'text-lg pt-5' : ''}`}>Sign up</h1>
+                        <p className='text-xs font-bold text-white text-center mt-1'>{!loginVisible ? "Don't have an account?" : ''}</p>
+                    </button>
+                    <Form onSubmit={handleSubmit(mutate)} autoComplete='on' className={`max-w-[300px] mx-auto gap-0 duration-700 p-5 ${loginVisible ? 'opacity-100' : 'opacity-0'}`}>
                         <Input
                             classNames={{
-                                inputWrapper: "bg-white",
+                                inputWrapper: "bg-white rounded-t-xl rounded-b-none border-1 ",
+                                label: "text-default-400"
                             }}
-                            className="w-full my-4"
+                            className="w-full z-0"
                             errorMessage={errors.name?.message}
                             isInvalid={Boolean(errors.name)}
                             label="Name"
@@ -77,9 +92,10 @@ export default function Register() {
                         />
                         <Input
                             classNames={{
-                                inputWrapper: "bg-white",
+                                inputWrapper: "bg-white rounded-none border-1",
+                                label: "text-default-400"
                             }}
-                            className="w-full mb-4"
+                            className="w-full z-0"
                             errorMessage={errors.email?.message}
                             isInvalid={Boolean(errors.email)}
                             label="Email"
@@ -91,7 +107,8 @@ export default function Register() {
                         />
                         <Input
                             classNames={{
-                                inputWrapper: "bg-white",
+                                inputWrapper: "bg-white rounded-none border-1",
+                                label: "text-default-400"
                             }}
                             endContent={
                                 <button
@@ -107,7 +124,7 @@ export default function Register() {
                                     )}
                                 </button>
                             }
-                            className="w-full mb-4"
+                            className="w-full z-0"
                             errorMessage={errors.password?.message}
                             isInvalid={Boolean(errors.password)}
                             label="Password"
@@ -119,9 +136,10 @@ export default function Register() {
                         />
                         <Input
                             classNames={{
-                                inputWrapper: "bg-white",
+                                inputWrapper: "bg-white rounded-none border-1",
+                                label: "text-default-400"
                             }}
-                            className="w-full mb-4"
+                            className="w-full z-0"
                             errorMessage={errors.rePassword?.message}
                             isInvalid={Boolean(errors.rePassword)}
                             label="Confirm Password"
@@ -133,9 +151,10 @@ export default function Register() {
                         />
                         <Input
                             classNames={{
-                                inputWrapper: "bg-white",
+                                inputWrapper: "bg-white rounded-none text-default-400 border-0",
+                                label: "text-default-400",
                             }}
-                            className="w-full mb-4"
+                            className="w-full z-0"
                             errorMessage={errors.dateOfBirth?.message}
                             isInvalid={Boolean(errors.dateOfBirth)}
                             label="Date of Birth"
@@ -146,9 +165,10 @@ export default function Register() {
                         />
                         <Select
                             classNames={{
-                                trigger: "bg-white",
+                                trigger: "bg-white rounded-t-none rounded-b-xl text-default-400",
+                                label: "text-default-400"
                             }}
-                            className="w-full mb-4"
+                            className="w-full z-0"
                             label="Gender"
                             errorMessage={errors.gender?.message}
                             isInvalid={Boolean(errors.gender)}
@@ -160,11 +180,68 @@ export default function Register() {
                             <SelectItem key='male'>Male</SelectItem>
                             <SelectItem key='female'>Female</SelectItem>
                         </Select>
-                        <Button type='submit' isDisabled={isLoading} isLoading={isLoading} variant='shadow' className='bg-primary text-white'>{isLoading ? 'loading' : 'Register'}</Button>
+                        <Button type='submit' isDisabled={registerLoading} isLoading={registerLoading} className='bg-black/40 w-full my-4 hover:bg-black text-white'>{registerLoading ? 'loading' : 'Sign up'}</Button>
                     </Form>
+                    <div className={`absolute left-0 rounded-t-[100%]  transition-all duration-700  w-full h-[100px]  bg-white ${loginVisible ? '-translate-y-[20px]' : '-translate-y-[400px]'}`}>
+                        <div className={`w-full h-full flex flex-col items-center ${loginVisible ? 'cursor-pointer' : ''} `} onClick={() => loginVisible && setLoginVisible(!loginVisible)}>
+                            <h6 className={`${loginVisible ? 'text-lg mt-2' : 'text-3xl mt-10'}  font-bold`}>Login</h6>
+                            <p className='text-xs font-light text-default-400'>{loginVisible ? 'Already have an account?' : ''}</p>
+                        </div>
+                    </div>
+                    <div className={`bg-white absolute w-full transition-all duration-700  left-0 ${loginVisible ? 'translate-y-10 ' : 'h-100 -translate-y-80'}`}>
+                        <div className='w-full h-full flex flex-col items-center max-w-[300px] mx-auto gap-0 p-5 mt-5'>
+                            <Form className='gap-0' onSubmit={loginSubmit(loginMutate)}>
+                                <Input
+                                    classNames={{
+                                        inputWrapper: "bg-white rounded-t-xl rounded-b-none border-1",
+                                        label: "text-default-400"
+                                    }}
+                                    className="w-full z-0"
+                                    errorMessage={loginErrors.email?.message}
+                                    isInvalid={Boolean(loginErrors.email)}
+                                    label="Email"
+                                    type="email"
+                                    name='email'
+                                    autoComplete="email"
+                                    variant="bordered"
+                                    {...loginRegister('email')}
+                                />
+                                <Input
+                                    classNames={{
+                                        inputWrapper: "bg-white rounded-b-xl rounded-t-none border-1",
+                                        label: "text-default-400"
+                                    }}
+                                    endContent={
+                                        <button
+                                            aria-label="toggle password visibility"
+                                            className="focus:outline-solid outline-transparent"
+                                            type="button"
+                                            onClick={toggleVisibility}
+                                        >
+                                            {isVisible ? (
+                                                <EyeSlashFilledIcon className="text-2xl text-default-400 pointer-events-none" />
+                                            ) : (
+                                                <EyeFilledIcon className="text-2xl text-default-400 pointer-events-none" />
+                                            )}
+                                        </button>
+                                    }
+                                    className="w-full z-0"
+                                    errorMessage={loginErrors.password?.message}
+                                    isInvalid={Boolean(loginErrors.password)}
+                                    label="Password"
+                                    autoComplete="new-password"
+                                    type={isVisible ? "text" : "password"}
+                                    name='password'
+                                    variant="bordered"
+                                    {...loginRegister('password')}
+                                />
+                                <Button type='submit' isDisabled={loginLoading} isLoading={loginLoading} className='bg-[#6B92A4] w-full my-4  text-white'>{loginLoading ? 'loading' : 'Login'}</Button>
+                            </Form>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </main>
+        </main >
     )
 }
 
