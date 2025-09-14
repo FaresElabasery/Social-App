@@ -16,8 +16,8 @@ export default function CommentCard({ comment, post, setisEditingComment }) {
     const queryClient = useQueryClient()
     const { userInfo, userToken } = useContext(AuthContext)
     const [isUserPost, setIsUserPost] = useState(false)
-    const checkUserPost = userInfo.user._id == post.user._id
-    const checkUserComment = userInfo.user._id == comment.commentCreator._id
+    const checkUserPost = userInfo?.user?._id == post?.user._id
+    const checkUserComment = userInfo?.user?._id == comment?.commentCreator._id
     const [isEditing, setisEditing] = useState(false)
     const [hasError, setHasError] = useState(false)
 

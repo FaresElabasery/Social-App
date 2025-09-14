@@ -61,7 +61,7 @@ export default function ChangePasswordModal({ isOpen, onClose }) {
             reset()
             setTimeout(() => {
                 toast.info('redirecting to Login page', ToastConfig)
-                navigate('/login')
+                navigate('/register')
             }, 2500);
         },
         onError: () => {

@@ -8,7 +8,6 @@ import { ToastContainer } from "react-toastify";
 import ProtectedRoutes from "./Components/ProtectedRoutes/ProtectedRoutes";
 import { AuthContextProvider } from "./Context/AuthContext/AuthContext";
 import Layout from "./Pages/Layout/Layout";
-import Login from './Pages/login/login';
 import NotFound from './Pages/NotFound/NotFound';
 import PostDetails from './Pages/PostDetails/PostDetails';
 import Posts from './Pages/Posts/Posts';
@@ -27,9 +26,6 @@ function App() {
     children: [{
       index: true,
       element: <ProtectedRoutes><Posts /></ProtectedRoutes>
-    }, {
-      path: "/login",
-      element: <Login />
     },
     {
       path: "/register",

@@ -36,7 +36,6 @@ export default function NavbarCompoenet({ handleDarkMode }) {
   // upload Profile Picture of user
   const [menuItems, setMenuItems] = useState([
     "Home",
-    "Login",
     "Profile",
     "SignUp"
   ])
@@ -48,7 +47,6 @@ export default function NavbarCompoenet({ handleDarkMode }) {
       ])
     } else {
       setMenuItems([
-        "Login",
         "SignUp"
       ])
     }
@@ -58,7 +56,7 @@ export default function NavbarCompoenet({ handleDarkMode }) {
   const handleLogout = () => {
     localStorage.removeItem('token')
     setUserToken('')
-    navigate('/login')
+    navigate('/register')
   }
   return (
     <Navbar onMenuOpenChange={setIsMenuOpen} className="bg-gradient-to-b border-b-1 border-gray-200  ">
@@ -99,9 +97,6 @@ export default function NavbarCompoenet({ handleDarkMode }) {
           </Switch>
           {!userToken &&
             <>
-              <NavbarItem className="hidden md:flex">
-                <NavLink to="/login">Login</NavLink>
-              </NavbarItem>
               <NavbarItem>
                 <Button className="hover:border-b-2 hover:!border-blue-400 hover:scale-105" as={NavLink} color="primary" to="/register" variant="flat">
                   Sign Up
@@ -173,7 +168,7 @@ export default function NavbarCompoenet({ handleDarkMode }) {
               color={
                 index === 2 ? "primary" : index === menuItems.length - 1 ? "danger" : "foreground"
               }
-              to={item === "Home" ? "/" : item === "login" ? "/login" : item === "SignUp" ? "/register" : `/${item.toLowerCase()}`}
+              to={item === "Home" ? "/" : item === "login" ? "/register" : item === "SignUp" ? "/register" : `/${item.toLowerCase()}`}
               size="lg"
             >
               {item}
