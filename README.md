@@ -4,7 +4,7 @@ A modern, full-featured social media platform built with **React 19**, **Vite**,
 
 ---
 
-### Features
+## Features
 
 - **Authentication**  
   Secure JWT-based login, registration, and protected routes.
@@ -90,14 +90,14 @@ VITE_API_URL=https://your-api-url.com
 
 npm run dev
 
-### Available Scripts
+## Available Scripts
 
 - npm run dev – Start the development server
 - npm run build – Build the app for production
 - npm run preview – Preview the production build
 - npm run lint – Run ESLint to check for code issues
 
-### Customization
+## Customization
 
 UI Theme:
 Modify src/index.css and src/hero.js for color schemes and global styles.
@@ -105,6 +105,6 @@ Modify src/index.css and src/hero.js for color schemes and global styles.
 Component Templates:
 Reusable components are located in src/components/. You can extend or override styles using CSS Modules or Tailwind.
 
-### License
+## License
 
 This project is licensed under the MIT License.

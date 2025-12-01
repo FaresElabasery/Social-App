@@ -21,6 +21,8 @@ body {
     --color-success: #28a745;
     --color-light: #f8f9fa;
     --color-dark: #343a40;
+    --color-dark2: #021526;
+    
 }
 
 @theme {
@@ -29,6 +31,7 @@ body {
     --color-success: var(--color-success);
     --color-light: var(--color-light);
     --color-dark: var(--color-dark);
+    --color-dark2: var(--color-dark2);
 }
 
 /* navbar active links  */

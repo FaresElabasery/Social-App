@@ -122,7 +122,7 @@ export default function NavbarCompoenet({ handleDarkMode }) {
               <ChangePasswordModal isOpen={isOpenChangePassword} onClose={onCloseChangePassword} />
               <Dropdown placement="bottom-end" backdrop="opaque" >
                 <DropdownTrigger>
-                  <IoIosArrowDropdownCircle className="bg-white  hover:bg-whitetext-black hover: duration-250 rounded-full absolute top-[80%] right-[10%] translate-x-1/2" />
+                  <IoIosArrowDropdownCircle className="bg-white hover:bg-white text-black  duration-250 rounded-full absolute top-[80%] right-[10%] translate-x-1/2" />
                 </DropdownTrigger>
                 <DropdownMenu aria-label="Profile Actions" variant="flat" >
                   <DropdownSection showDivider>
